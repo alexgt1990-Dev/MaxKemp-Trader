@@ -60,7 +60,12 @@ with tab1:
         fig.add_trace(go.Scatter(x=data.index, y=data["SMA20"], name="SMA20"))
         fig.add_trace(go.Scatter(x=data.index, y=data["SMA50"], name="SMA50"))
         fig.add_trace(go.Scatter(x=data.index, y=data["SMA200"], name="SMA200"))
-
+        fig.add_trace(go.Scatter(x=data.index, y=data["EMA9"], name="EMA9"))
+        fig.add_trace(go.Scatter(x=data.index, y=data["EMA21"], name="EMA21"))
+        fig.add_trace(go.Scatter(x=data.index, y=data["VWAP"], name="VWAP"))
+        fig.add_trace(go.Scatter(x=data.index, y=data["BB_UPPER"], name="BB Upper"))
+        fig.add_trace(go.Scatter(x=data.index, y=data["BB_LOWER"], name="BB Lower"))
+        
         fig.update_layout(height=650, xaxis_rangeslider_visible=False)
         st.plotly_chart(fig, use_container_width=True)
 
