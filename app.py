@@ -107,7 +107,7 @@ with tab1:
 
             st.write(f"Risk/Reward TP1: **{plan['rr1']:.2f}**")
             st.write(f"Risk/Reward TP2: **{plan['rr2']:.2f}**")
-            st.write(f"Risk/Reward TP3: **{plan['rr3']:.2f}**")
+            st.write(f"Risk/Reward TP3: **{plan['rr3']:.2f}")
 
 with tab2:
     st.subheader("Market Scanner")
@@ -132,12 +132,21 @@ with tab2:
             df = pd.DataFrame(results)
             df = df.sort_values(by=["Score", "Rel Volume"], ascending=False)
 
+            display_df = df[[
+                "Ticker",
+                "Score",
+                "Price",
+                "Trend",
+                "Setup",
+                "Volume",
+                "Reasons"
+            ]]
+
             st.dataframe(
-                df,
+                display_df,
                 use_container_width=True,
                 hide_index=True
             )
 
         else:
             st.warning("No valid results.")
-            
