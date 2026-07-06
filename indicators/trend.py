@@ -1,4 +1,6 @@
 def add_trend_indicators(data):
+    data = data.copy()
+
     data["SMA20"] = data["Close"].rolling(20).mean()
     data["SMA50"] = data["Close"].rolling(50).mean()
     data["SMA200"] = data["Close"].rolling(200).mean()
@@ -8,6 +10,7 @@ def add_trend_indicators(data):
     data["EMA50"] = data["Close"].ewm(span=50, adjust=False).mean()
     data["EMA200"] = data["Close"].ewm(span=200, adjust=False).mean()
 
-    data["VWAP"] = (data["Close"] * data["Volume"]).cumsum() / data["Volume"].cumsum()
+    typical_price = (data["High"] + data["Low"] + data["Close"]) / 3
+    data["VWAP"] = (typical_price * data["Volume"]).cumsum() / data["Volume"].cumsum()
 
     return data
