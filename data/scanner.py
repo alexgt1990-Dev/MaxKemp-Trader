@@ -3,7 +3,7 @@ from indicators.trend import add_trend_indicators
 from indicators.momentum import add_momentum_indicators
 from indicators.volatility import add_volatility_indicators
 from indicators.volume import add_volume_indicators
-from strategy.scoring import calculate_score
+from strategy.mk_confidence import calculate_mk_confidence
 
 
 def classify_trend(row):
@@ -57,11 +57,13 @@ def analyze_ticker(ticker):
         return None
 
     latest = data.iloc[-1]
-    score, reasons = calculate_score(latest)
+    mk = calculate_mk_confidence(latest)
 
     return {
         "Ticker": ticker,
-        "Score": score,
+        "Stars": "★" * mk.stars,
+        "MK Score": mk.total,
+        "Confidence": mk.confidence,
         "Price": round(latest["Close"], 2),
         "Trend": classify_trend(latest),
         "Setup": classify_setup(latest),
@@ -70,5 +72,5 @@ def analyze_ticker(ticker):
         "ADX": round(latest["ADX"], 2),
         "Rel Volume": round(latest["REL_VOLUME"], 2),
         "ATR %": round((latest["ATR"] / latest["Close"]) * 100, 2),
-        "Reasons": ", ".join(reasons),
+        "Reasons": ", ".join(mk.reasons),
     }
