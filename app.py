@@ -117,7 +117,7 @@ with tab2:
 
         if results:
             df = pd.DataFrame(results)
-            df = df.sort_values(by="Score", ascending=False)
+            df = df.sort_values(by=["Score", "Rel Volume"], ascending=False)
             st.dataframe(df, use_container_width=True)
         else:
             st.warning("No valid results.")
