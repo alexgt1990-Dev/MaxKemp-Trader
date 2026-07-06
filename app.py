@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
+from st_aggrid import AgGrid, GridOptionsBuilder
 
 from config import APP_NAME, DEFAULT_TICKERS
 from data.market_data import get_price_data
@@ -149,7 +149,6 @@ with tab2:
                 "Reasons"
             ]].copy()
 
-            display_df["Price"] = display_df["Price"].map(lambda x: f"${x:,.2f}")
             display_df["ATR %"] = display_df["ATR %"].map(lambda x: f"{x:.2f}%")
             display_df["RSI"] = display_df["RSI"].map(lambda x: f"{x:.2f}")
             display_df["ADX"] = display_df["ADX"].map(lambda x: f"{x:.2f}")
@@ -157,13 +156,13 @@ with tab2:
 
             def score_icon(score):
                 if score >= 80:
-                    return f"🟢 {score}"
+                    return f"🟢 {score}/100"
                 elif score >= 65:
-                    return f"🔵 {score}"
+                    return f"🔵 {score}/100"
                 elif score <= 35:
-                    return f"🔴 {score}"
+                    return f"🔴 {score}/100"
                 else:
-                    return f"🟡 {score}"
+                    return f"🟡 {score}/100"
 
             display_df["Score"] = display_df["Score"].map(score_icon)
 
@@ -192,17 +191,23 @@ with tab2:
             display_df["Volume"] = display_df["Volume"].map(volume_icon)
 
             gb = GridOptionsBuilder.from_dataframe(display_df)
+
             gb.configure_default_column(
                 filter=True,
                 sortable=True,
                 resizable=True,
-                autoHeight=True,
-                wrapText=True
+                wrapText=True,
+                autoHeight=True
             )
 
             gb.configure_column("Ticker", pinned="left", width=100)
-            gb.configure_column("Score", width=110)
-            gb.configure_column("Price", width=110)
+            gb.configure_column("Score", width=120)
+            gb.configure_column(
+                "Price",
+                width=120,
+                type=["numericColumn"],
+                valueFormatter="x.toLocaleString('en-US',{style:'currency',currency:'USD'})"
+            )
             gb.configure_column("Trend", width=150)
             gb.configure_column("Setup", width=130)
             gb.configure_column("Volume", width=140)
@@ -210,7 +215,7 @@ with tab2:
             gb.configure_column("ADX", width=90)
             gb.configure_column("Rel Volume", width=120)
             gb.configure_column("ATR %", width=100)
-            gb.configure_column("Reasons", width=600, wrapText=True, autoHeight=True)
+            gb.configure_column("Reasons", width=650, wrapText=True, autoHeight=True)
 
             grid_options = gb.build()
 
@@ -219,7 +224,6 @@ with tab2:
                 gridOptions=grid_options,
                 height=520,
                 fit_columns_on_grid_load=False,
-                allow_unsafe_jscode=True,
                 theme="streamlit"
             )
 
