@@ -84,12 +84,17 @@ with tab1:
 
         st.subheader("Risk Plan")
 
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Entry", f"${latest['Close']:.2f}")
-        c2.metric("Stop", f"${plan['stop_loss']:.2f}")
-        c3.metric("TP1", f"${plan['take_profit_1']:.2f}")
-        c4.metric("TP2", f"${plan['take_profit_2']:.2f}")
-        c5.metric("Shares", f"{plan['shares']:.0f}")
+        c1, c2, c3, c4, c5, c6 = st.columns(6)
+c1.metric("Entry", f"${latest['Close']:.2f}")
+c2.metric("Stop", f"${plan['stop_loss']:.2f}")
+c3.metric("TP1", f"${plan['take_profit_1']:.2f}")
+c4.metric("TP2", f"${plan['take_profit_2']:.2f}")
+c5.metric("TP3", f"${plan['take_profit_3']:.2f}")
+c6.metric("Shares", f"{plan['shares']:.0f}")
+
+st.write(f"Risk/Reward TP1: **{plan['rr1']:.2f}**")
+st.write(f"Risk/Reward TP2: **{plan['rr2']:.2f}**")
+st.write(f"Risk/Reward TP3: **{plan['rr3']:.2f}**")
 
 with tab2:
     st.subheader("Market Scanner")
