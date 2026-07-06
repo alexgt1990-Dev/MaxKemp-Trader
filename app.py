@@ -118,13 +118,16 @@ with tab2:
         if results:
             df = pd.DataFrame(results)
             df = df.sort_values(by=["Score", "Rel Volume"], ascending=False)
+            
             st.dataframe(
                 df[["Ticker", "Score", "Price", "Trend", "Setup", "Volume", "RSI", "ADX", "Rel Volume", "ATR %"]],
                 use_container_width=True,
                 hide_index=True
-        )
+            )
 
-        with st.expander("View full scanner details"):
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            with st.expander("View full scanner details"):
+                st.dataframe(df, use_container_width=True, hide_index=True)
+                
         else:
             st.warning("No valid results.")
+            
