@@ -11,7 +11,7 @@ from indicators.trend import add_trend_indicators
 from indicators.momentum import add_momentum_indicators
 from indicators.volatility import add_volatility_indicators
 from indicators.volume import add_volume_indicators
-from strategy.scoring import calculate_score
+from strategy.mk_confidence import calculate_mk_confidence
 from strategy.risk import risk_plan
 
 st.set_page_config(page_title=APP_NAME, layout="wide")
@@ -41,7 +41,9 @@ with tab1:
             st.error("Not enough data to calculate indicators.")
         else:
             latest = data.iloc[-1]
-            score, reasons = calculate_score(latest)
+            mk = calculate_mk_confidence(latest)
+            score = mk.total
+            reasons = mk.reasons
             plan = risk_plan(latest["Close"], latest["ATR"], capital, risk_pct)
 
             col1, col2, col3, col4, col5 = st.columns(5)
