@@ -69,18 +69,18 @@ with tab1:
         fig.update_layout(height=650, xaxis_rangeslider_visible=False)
         st.plotly_chart(fig, use_container_width=True)
 
-        if score >= 4:
+        if score >= 80:
             st.success("Bias: LONG FUERTE")
-        elif score >= 2:
+        elif score >= 65:
             st.info("Bias: LONG MODERADO")
-        elif score <= -3:
+        elif score <= 35:
             st.error("Bias: EVITAR / SHORT")
         else:
             st.warning("Bias: NEUTRAL")
 
-        st.write("Reasons:")
+        st.subheader("Trade Read")
         for r in reasons:
-            st.write("-", r)
+            st.write("•", r)
 
         st.subheader("Risk Plan")
 
