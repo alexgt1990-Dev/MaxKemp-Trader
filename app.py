@@ -35,66 +35,79 @@ with tab1:
         data = add_volume_indicators(data)
         data = data.dropna()
 
-        latest = data.iloc[-1]
-        score, reasons = calculate_score(latest)
-        plan = risk_plan(latest["Close"], latest["ATR"], capital, risk_pct)
-
-        col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric("Price", f"${latest['Close']:.2f}")
-        col2.metric("RSI", f"{latest['RSI']:.2f}")
-        col3.metric("MACD", f"{latest['MACD']:.2f}")
-        col4.metric("ATR", f"{latest['ATR']:.2f}")
-        col5.metric("Score", score)
-
-        fig = go.Figure()
-
-        fig.add_trace(go.Candlestick(
-            x=data.index,
-            open=data["Open"],
-            high=data["High"],
-            low=data["Low"],
-            close=data["Close"],
-            name="Price"
-        ))
-
-        fig.add_trace(go.Scatter(x=data.index, y=data["SMA20"], name="SMA20"))
-        fig.add_trace(go.Scatter(x=data.index, y=data["SMA50"], name="SMA50"))
-        fig.add_trace(go.Scatter(x=data.index, y=data["SMA200"], name="SMA200"))
-        fig.add_trace(go.Scatter(x=data.index, y=data["EMA9"], name="EMA9"))
-        fig.add_trace(go.Scatter(x=data.index, y=data["EMA21"], name="EMA21"))
-        fig.add_trace(go.Scatter(x=data.index, y=data["VWAP"], name="VWAP"))
-        fig.add_trace(go.Scatter(x=data.index, y=data["BB_UPPER"], name="BB Upper"))
-        fig.add_trace(go.Scatter(x=data.index, y=data["BB_LOWER"], name="BB Lower"))
-        
-        fig.update_layout(height=650, xaxis_rangeslider_visible=False)
-        st.plotly_chart(fig, use_container_width=True)
-
-        if score >= 80:
-            st.success("Bias: LONG FUERTE")
-        elif score >= 65:
-            st.info("Bias: LONG MODERADO")
-        elif score <= 35:
-            st.error("Bias: EVITAR / SHORT")
+        if data.empty:
+            st.error("Not enough data to calculate indicators.")
         else:
-            st.warning("Bias: NEUTRAL")
+            latest = data.iloc[-1]
+            score, reasons = calculate_score(latest)
+            plan = risk_plan(latest["Close"], latest["ATR"], capital, risk_pct)
 
-        st.subheader("Trade Read")
-        for r in reasons:
-            st.write("•", r)
+            col1, col2, col3, col4, col5 = st.columns(5)
+            col1.metric("Price", f"${latest['Close']:.2f}")
+            col2.metric("RSI", f"{latest['RSI']:.2f}")
+            col3.metric("MACD", f"{latest['MACD']:.2f}")
+            col4.metric("ATR", f"{latest['ATR']:.2f}")
+            col5.metric("Score", f"{score}/100")
 
-        st.subheader("Risk Plan")
+            fig = go.Figure()
 
-        c1, c2, c3, c4, c5, c6 = st.columns(6)
-        c1.metric("Entry", f"${latest['Close']:.2f}")
-        c2.metric("Stop", f"${plan['stop_loss']:.2f}")
-        c3.metric("TP1", f"${plan['take_profit_1']:.2f}")
-        c4.metric("TP2", f"${plan['take_profit_2']:.2f}")
-        c5.metric("TP3", f"${plan['take_profit_3']:.2f}")
-        c6.metric("Shares", f"{plan['shares']:.0f}")
+            fig.add_trace(go.Candlestick(
+                x=data.index,
+                open=data["Open"],
+                high=data["High"],
+                low=data["Low"],
+                close=data["Close"],
+                name="Price"
+            ))
 
-        st.write(f"Risk/Reward TP1: **{plan['rr1']:.2f}**")
-        st.write(f"Risk/Reward TP2: **{plan['rr2']:.2f}**")
-        st.write(f"Risk/Reward TP3: **{plan['rr3']:.2f}**")
+            fig.add_trace(go.Scatter(x=data.index, y=data["SMA20"], name="SMA20"))
+            fig.add_trace(go.Scatter(x=data.index, y=data["SMA50"], name="SMA50"))
+            fig.add_trace(go.Scatter(x=data.index, y=data["SMA200"], name="SMA200"))
+            fig.add_trace(go.Scatter(x=data.index, y=data["EMA9"], name="EMA9"))
+            fig.add_trace(go.Scatter(x=data.index, y=data["EMA21"], name="EMA21"))
+
+            if "VWAP" in data.columns:
+                fig.add_trace(go.Scatter(x=data.index, y=data["VWAP"], name="VWAP"))
+
+            if "BB_UPPER" in data.columns:
+                fig.add_trace(go.Scatter(x=data.index, y=data["BB_UPPER"], name="BB Upper"))
+
+            if "BB_LOWER" in data.columns:
+                fig.add_trace(go.Scatter(x=data.index, y=data["BB_LOWER"], name="BB Lower"))
+
+            fig.update_layout(height=650, xaxis_rangeslider_visible=False)
+            st.plotly_chart(fig, use_container_width=True)
+
+            if score >= 80:
+                st.success("Bias: LONG FUERTE")
+            elif score >= 65:
+                st.info("Bias: LONG MODERADO")
+            elif score <= 35:
+                st.error("Bias: EVITAR / SHORT")
+            else:
+                st.warning("Bias: NEUTRAL")
+
+            st.subheader("Trade Read")
+
+            if reasons:
+                for r in reasons:
+                    st.write("•", r)
+            else:
+                st.write("No strong reasons detected.")
+
+            st.subheader("Risk Plan")
+
+            c1, c2, c3, c4, c5, c6 = st.columns(6)
+            c1.metric("Entry", f"${latest['Close']:.2f}")
+            c2.metric("Stop", f"${plan['stop_loss']:.2f}")
+            c3.metric("TP1", f"${plan['take_profit_1']:.2f}")
+            c4.metric("TP2", f"${plan['take_profit_2']:.2f}")
+            c5.metric("TP3", f"${plan['take_profit_3']:.2f}")
+            c6.metric("Shares", f"{plan['shares']:.0f}")
+
+            st.write(f"Risk/Reward TP1: **{plan['rr1']:.2f}**")
+            st.write(f"Risk/Reward TP2: **{plan['rr2']:.2f}**")
+            st.write(f"Risk/Reward TP3: **{plan['rr3']:.2f}**")
 
 with tab2:
     st.subheader("Market Scanner")
@@ -118,16 +131,13 @@ with tab2:
         if results:
             df = pd.DataFrame(results)
             df = df.sort_values(by=["Score", "Rel Volume"], ascending=False)
-            
+
             st.dataframe(
-                df[["Ticker", "Score", "Price", "Trend", "Setup", "Volume", "RSI", "ADX", "Rel Volume", "ATR %"]],
+                df,
                 use_container_width=True,
                 hide_index=True
             )
 
-            with st.expander("View full scanner details"):
-                st.dataframe(df, use_container_width=True, hide_index=True)
-                
         else:
             st.warning("No valid results.")
             
