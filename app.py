@@ -6,12 +6,13 @@ from st_aggrid import AgGrid, GridOptionsBuilder
 from config import APP_NAME, DEFAULT_TICKERS
 from data.scanner import analyze_ticker
 from ui.dashboard import render_dashboard
+from ui.options_lab import render_options_lab
 
 st.set_page_config(page_title=APP_NAME, layout="wide")
 
 st.title(APP_NAME)
 
-tab1, tab2 = st.tabs(["Dashboard", "Scanner"])
+tab1, tab2, tab3 = st.tabs(["Dashboard", "Scanner", "Options Lab"])
 
 with tab1:
     render_dashboard()
@@ -107,3 +108,6 @@ with tab2:
 
         else:
             st.warning("No valid results.")
+
+with tab3:
+    render_options_lab()
