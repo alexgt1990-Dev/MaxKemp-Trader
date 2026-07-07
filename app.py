@@ -42,8 +42,6 @@ with tab1:
         else:
             latest = data.iloc[-1]
             mk = calculate_mk_confidence(latest)
-            score = mk.total
-            reasons = mk.reasons
             plan = risk_plan(latest["Close"], latest["ATR"], capital, risk_pct)
 
             col1, col2, col3, col4, col5 = st.columns(5)
@@ -51,7 +49,12 @@ with tab1:
             col2.metric("RSI", f"{latest['RSI']:.2f}")
             col3.metric("MACD", f"{latest['MACD']:.2f}")
             col4.metric("ATR", f"${latest['ATR']:.2f}")
-            col5.metric("Score", f"{score}/100")
+            col5.metric("MK Score", f"{mk.total}/100")
+
+            st.subheader("MK Confidence™")
+            st.progress(mk.total / 100)
+            st.write(f"**{'★' * mk.stars}**")
+            st.write(f"**{mk.confidence}**")
 
             fig = go.Figure()
 
@@ -82,32 +85,33 @@ with tab1:
             fig.update_layout(height=650, xaxis_rangeslider_visible=False)
             st.plotly_chart(fig, use_container_width=True)
 
-            if score >= 80:
-                st.success("Bias: 🟢 LONG FUERTE")
-            elif score >= 65:
-                st.info("Bias: 🔵 LONG MODERADO")
-            elif score <= 35:
-                st.error("Bias: 🔴 EVITAR / SHORT")
-            else:
-                st.warning("Bias: 🟡 NEUTRAL")
+            st.subheader("Score Breakdown")
+
+            c1, c2, c3, c4, c5, c6 = st.columns(6)
+            c1.metric("Trend", f"{mk.trend}/30")
+            c2.metric("Momentum", f"{mk.momentum}/20")
+            c3.metric("Volume", f"{mk.volume}/15")
+            c4.metric("Volatility", f"{mk.volatility}/10")
+            c5.metric("Risk", f"{mk.risk}/15")
+            c6.metric("Setup", f"{mk.setup}/10")
 
             st.subheader("Trade Read")
 
-            if reasons:
-                for r in reasons:
-                    st.write("•", r)
+            if mk.reasons:
+                for reason in mk.reasons:
+                    st.write("•", reason)
             else:
                 st.write("No strong reasons detected.")
 
             st.subheader("Risk Plan")
 
-            c1, c2, c3, c4, c5, c6 = st.columns(6)
-            c1.metric("Entry", f"${latest['Close']:,.2f}")
-            c2.metric("Stop", f"${plan['stop_loss']:,.2f}")
-            c3.metric("TP1", f"${plan['take_profit_1']:,.2f}")
-            c4.metric("TP2", f"${plan['take_profit_2']:,.2f}")
-            c5.metric("TP3", f"${plan['take_profit_3']:,.2f}")
-            c6.metric("Shares", f"{plan['shares']:.0f}")
+            r1, r2, r3, r4, r5, r6 = st.columns(6)
+            r1.metric("Entry", f"${latest['Close']:,.2f}")
+            r2.metric("Stop", f"${plan['stop_loss']:,.2f}")
+            r3.metric("TP1", f"${plan['take_profit_1']:,.2f}")
+            r4.metric("TP2", f"${plan['take_profit_2']:,.2f}")
+            r5.metric("TP3", f"${plan['take_profit_3']:,.2f}")
+            r6.metric("Shares", f"{plan['shares']:.0f}")
 
             st.write(f"Risk Amount: **${plan['risk_amount']:,.2f}**")
             st.write(f"Risk/Reward TP1: **{plan['rr1']:.2f}x**")
@@ -122,7 +126,7 @@ with tab2:
         ",".join(DEFAULT_TICKERS)
     )
 
-    tickers = [t.strip().upper() for t in tickers_text.split(",") if t.strip()]
+    tickers = [ticker.strip().upper() for ticker in tickers_text.split(",") if ticker.strip()]
 
     if st.button("Run Scanner"):
         results = []
@@ -135,11 +139,17 @@ with tab2:
 
         if results:
             df = pd.DataFrame(results)
-            df = df.sort_values(by=["Score", "Rel Volume"], ascending=False)
+
+            df = df.sort_values(
+                by=["MK Score", "Rel Volume"],
+                ascending=[False, False]
+            )
 
             display_df = df[[
                 "Ticker",
-                "Score",
+                "Stars",
+                "MK Score",
+                "Confidence",
                 "Price",
                 "Trend",
                 "Setup",
@@ -156,42 +166,6 @@ with tab2:
             display_df["ADX"] = display_df["ADX"].map(lambda x: f"{x:.2f}")
             display_df["Rel Volume"] = display_df["Rel Volume"].map(lambda x: f"{x:.2f}x")
 
-            def score_icon(score):
-                if score >= 80:
-                    return f"🟢 {score}/100"
-                elif score >= 65:
-                    return f"🔵 {score}/100"
-                elif score <= 35:
-                    return f"🔴 {score}/100"
-                else:
-                    return f"🟡 {score}/100"
-
-            display_df["Score"] = display_df["Score"].map(score_icon)
-
-            def trend_icon(trend):
-                if "Bull Strong" in trend:
-                    return "🟢 Bull Strong"
-                elif trend == "Bull":
-                    return "🟢 Bull"
-                elif "Bear" in trend:
-                    return "🔴 Bear"
-                else:
-                    return "🟡 Mixed"
-
-            display_df["Trend"] = display_df["Trend"].map(trend_icon)
-
-            def volume_icon(volume):
-                if volume == "Very High":
-                    return "🔥 Very High"
-                elif volume == "High":
-                    return "🟢 High"
-                elif volume == "Normal":
-                    return "🟡 Normal"
-                else:
-                    return "⚪ Low"
-
-            display_df["Volume"] = display_df["Volume"].map(volume_icon)
-
             gb = GridOptionsBuilder.from_dataframe(display_df)
 
             gb.configure_default_column(
@@ -203,13 +177,17 @@ with tab2:
             )
 
             gb.configure_column("Ticker", pinned="left", width=100)
-            gb.configure_column("Score", width=120)
+            gb.configure_column("Stars", width=110)
+            gb.configure_column("MK Score", width=120)
+            gb.configure_column("Confidence", width=140)
+
             gb.configure_column(
                 "Price",
                 width=120,
                 type=["numericColumn"],
                 valueFormatter="x.toLocaleString('en-US',{style:'currency',currency:'USD'})"
             )
+
             gb.configure_column("Trend", width=150)
             gb.configure_column("Setup", width=130)
             gb.configure_column("Volume", width=140)
@@ -217,14 +195,14 @@ with tab2:
             gb.configure_column("ADX", width=90)
             gb.configure_column("Rel Volume", width=120)
             gb.configure_column("ATR %", width=100)
-            gb.configure_column("Reasons", width=650, wrapText=True, autoHeight=True)
+            gb.configure_column("Reasons", width=700, wrapText=True, autoHeight=True)
 
             grid_options = gb.build()
 
             AgGrid(
                 display_df,
                 gridOptions=grid_options,
-                height=520,
+                height=540,
                 fit_columns_on_grid_load=False,
                 theme="streamlit"
             )
