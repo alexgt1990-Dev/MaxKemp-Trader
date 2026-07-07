@@ -41,7 +41,7 @@ def render_dashboard():
     mk = calculate_mk_confidence(latest)
     plan = risk_plan(latest["Close"], latest["ATR"], capital, risk_pct)
 
-    top1, top2, top3, top4 = st.columns([1.2, 1, 1, 1])
+    top1, top2, top3, top4 = st.columns(4)
 
     with top1:
         render_card("Ticker", ticker, "Selected asset")
@@ -52,15 +52,30 @@ def render_dashboard():
     with top4:
         render_card("Decision", mk.confidence, "MK Signal")
 
-    left, right = st.columns([1, 2])
+    st.subheader("MK Confidence™")
+
+    left, right = st.columns([0.9, 2.1])
 
     with left:
         render_mk_gauge(mk)
 
     with right:
-        st.subheader("AI Summary")
-        summary = generate_ai_summary(ticker, latest, mk, plan)
-        st.markdown(summary)
+        st.markdown(
+            f"""
+            <div style="
+                padding: 22px;
+                border-radius: 14px;
+                border: 1px solid rgba(255,255,255,0.12);
+                background: rgba(255,255,255,0.04);
+                box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+                min-height: 230px;
+            ">
+                <h3 style="margin-top:0;">AI Summary</h3>
+                {generate_ai_summary(ticker, latest, mk, plan)}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     st.subheader("Score Breakdown")
     render_score_cards(mk)
