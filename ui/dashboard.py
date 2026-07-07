@@ -60,22 +60,9 @@ def render_dashboard():
         render_mk_gauge(mk)
 
     with right:
-        st.markdown(
-            f"""
-            <div style="
-                padding: 22px;
-                border-radius: 14px;
-                border: 1px solid rgba(255,255,255,0.12);
-                background: rgba(255,255,255,0.04);
-                box-shadow: 0 4px 18px rgba(0,0,0,0.12);
-                min-height: 230px;
-            ">
-                <h3 style="margin-top:0;">AI Summary</h3>
-                {generate_ai_summary(ticker, latest, mk, plan)}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        st.subheader("AI Summary")
+        summary = generate_ai_summary(ticker, latest, mk, plan)
+        st.markdown(summary)
 
     st.subheader("Score Breakdown")
     render_score_cards(mk)
