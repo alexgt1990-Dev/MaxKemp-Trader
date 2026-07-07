@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 
+from streamlit_autorefresh import st_autorefresh
 from st_aggrid import AgGrid, GridOptionsBuilder
 
 from config import APP_NAME, DEFAULT_TICKERS
@@ -11,7 +12,11 @@ from ui.options_lab import render_options_lab
 st.set_page_config(page_title=APP_NAME, layout="wide")
 
 st.title(APP_NAME)
+auto_refresh = st.sidebar.toggle("Auto refresh", value=False)
 
+if auto_refresh:
+    refresh_seconds = st.sidebar.slider("Refresh every seconds", 30, 300, 60)
+    st_autorefresh(interval=refresh_seconds * 1000, key="market_refresh")
 tab1, tab2, tab3 = st.tabs(["Dashboard", "Scanner", "Options Lab"])
 
 with tab1:
